@@ -1,0 +1,10 @@
+.ant-empty {
+      margin: 0px;
+      width: 60vw;
+}
+.ant-empty-description, .ant-result-subtitle {
+      font-family: cursive;
+      font-weight: 700;
+      font-size: larger;
+      color: #000000;
+}
