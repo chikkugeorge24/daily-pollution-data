@@ -4,6 +4,7 @@ import { Alert, Result, Button, Empty } from 'antd';
 
 import PollutionGraph from '../Graph/PollutionGrpah';
 import useSpinner from '../Spinner/useSpinner';
+import { dataURL, noDataImgURL } from '../../Common/Constants';
 
 /** PollutionDataView loads the PollutionGraph */
 const PollutionDataView = (props) => {
@@ -24,39 +25,38 @@ const PollutionDataView = (props) => {
       };
       useEffect(() => {
             const fetchPollutionData = async () => {
-                  showSpinner();
-                  axios.get(`https://api.openaq.org/v1/measurements?limit=25&city=${city}&date_from=${date}&date_to=${date}`)
-                        .then(response => {
-                              return response.data.results;
-                        }).then(results => {
-                              const pollutionDataLength = results.length;
-                              setPollutionDataLength(pollutionDataLength);
-                              if (pollutionDataLength) {
-                                    const groupedLocations = results.reduce((result, current) => {
-                                          result[current.location] = [...result[current.location] || [], current];
-                                          return result;
-                                    }, {});
-                                    const pollutionDataArray = [];
-                                    for (const [location, value] of Object.entries(groupedLocations)) {
-                                          const pollutionDataObj = {};
-                                          value.forEach(element => {
-                                                const { parameter, value } = element;
-                                                pollutionDataObj[parameter] = value;
-                                          });
-                                          const splicedLocation = location.split(',');
-                                          pollutionDataObj.location = splicedLocation[0];
-                                          pollutionDataArray.push(pollutionDataObj);
-                                    }
-                                    setPollutionData(pollutionDataArray);
+                  try {
+                        showSpinner();
+                        const pollutionDataResponse = await axios.get(`${dataURL}&city=${city}&date_from=${date}&date_to=${date}`);
+                        const pollutionDataResults = pollutionDataResponse.data.results;
+                        const pollutionDataLength = pollutionDataResults.length;
+                        setPollutionDataLength(pollutionDataLength);
+                        if (pollutionDataLength) {
+                              const groupedLocations = pollutionDataResults.reduce((result, current) => {
+                                    result[current.location] = [...result[current.location] || [], current];
+                                    return result;
+                              }, {});
+                              const pollutionDataArray = [];
+                              for (const [location, value] of Object.entries(groupedLocations)) {
+                                    const pollutionDataObj = {};
+                                    value.forEach(element => {
+                                          const { parameter, value } = element;
+                                          pollutionDataObj[parameter] = value;
+                                    });
+                                    const splicedLocation = location.split(',');
+                                    pollutionDataObj.location = splicedLocation[0];
+                                    pollutionDataArray.push(pollutionDataObj);
                               }
-                              setTimeout(() => hideSpinner(), setIsLoaded(false), 1000);
-                        }).catch(err => {
-                              if (err.response) {
-                                    setResponseStatus(err.response.status);
-                              }
-                              setTimeout(() => hideSpinner(), setIsLoaded(false), 20);
-                        });
+                              setPollutionData(pollutionDataArray);
+                        }
+                        setTimeout(() => hideSpinner(), setIsLoaded(false), 1000);
 
+                  } catch (error) {
+                        if (error.response) {
+                              setResponseStatus(error.response.status);
+                        }
+                        setTimeout(() => hideSpinner(), setIsLoaded(false), 20);
+                  }
             };
             fetchPollutionData();
       }, []);
@@ -79,7 +79,7 @@ const PollutionDataView = (props) => {
                               <div className="col-8">
                                     {graphTitle}
                                     <PollutionGraph
-                                          graphData={pollutionData}/>
+                                          graphData={pollutionData} />
                               </div>
                         );
 
@@ -88,9 +88,9 @@ const PollutionDataView = (props) => {
                               <div className="col-8">
                                     {graphTitle}
                                     <Empty
-                                          image="https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg"
+                                          image={noDataImgURL}
                                           imageStyle={{
-                                                height: "50vh",
+                                                height: "50vh"
                                           }}
                                           description="Sorry... No data found."
                                     >
