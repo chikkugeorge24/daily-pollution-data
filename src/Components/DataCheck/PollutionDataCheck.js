@@ -3,7 +3,9 @@ import { withRouter } from 'react-router-dom';
 import axios from 'axios';
 import moment from 'moment';
 import { Card, Form, Button, Select, DatePicker } from 'antd';
-import { BarChartOutlined} from '@ant-design/icons';
+import { BarChartOutlined } from '@ant-design/icons';
+
+import { citiesURL } from '../../Common/Constants';
 const { Option } = Select;
 
 /** PollutionDataCheck - Entry point to view the Daily Pollution Data */
@@ -11,19 +13,18 @@ const PollutionDataCheck = (props) => {
       const [cities, setCities] = useState([]);
       useEffect(() => {
             const fetchCityData = async () => {
-                  axios.get("https://api.openaq.org/v1/cities?country=IN")
-                        .then(response => {
-                              return response.data.results;
-                        }).then(results => {
-                              const groupedCityData = results.reduce((result, current) => {
-                                    result[current.city] = [...result[current.city] || [], current];
-                                    return result;
-                              }, {});
-                              const cities = Object.keys(groupedCityData);
-                              setCities(cities);
-                        }).catch(err => {
-                              throw Error(err.message);
-                        });
+                  try {
+                        const cityDataResponse = await axios.get(citiesURL);
+                        const cityDataResults = cityDataResponse.data.results;
+                        const groupedCityData = cityDataResults.reduce((result, current) => {
+                              result[current.city] = [...result[current.city] || [], current];
+                              return result;
+                        }, {});
+                        const cities = Object.keys(groupedCityData);
+                        setCities(cities);
+                  } catch (error) {
+                        throw Error(error.message);
+                  }
             };
             fetchCityData();
       }, []);
@@ -100,7 +101,7 @@ const PollutionDataCheck = (props) => {
                                                       htmlType="submit"
                                                       shape="round"
                                                       style={{ width: "-webkit-fill-available" }}
-                                                      icon={<BarChartOutlined/>}
+                                                      icon={<BarChartOutlined />}
                                                 >View Data
                                                 </Button>
                                           </div>
