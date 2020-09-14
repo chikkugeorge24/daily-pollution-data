@@ -12,14 +12,12 @@ import './Components/DataView/DataView.css';
 function App() {
   useRedirect("/", "/pollution-data-check");
   return (
-    <div className="App">
       <Router>
         <div className="App">
           <Route path="/pollution-data-check" component={PollutionDataCheck} />
           <Route path="/pollution-data-view" component={PollutionDataView} />
         </div>
       </Router>
-    </div>
   );
 }
 
